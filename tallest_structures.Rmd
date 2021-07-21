@@ -5,17 +5,18 @@ output: html_document
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
-library(tidyverse)
-library(stringr)
-library(rvest)
-library(maps)
-library(mapdata)
-library(ggrepel)
+
 library(gganimate)
 library(ggplot2)
+library(ggrepel)
+library(mapdata)
+library(maps)
+library(rvest)
+library(stringr)
+library(tidyverse)
 
 source("tallest_structures_code.R")
-#load("dat.RData")
+load("dat.RData")
 ```
 
 Data on the world's tallest buildings was scraped from the Wikipedia page: [List of tallest freestanding structures](https://en.wikipedia.org/wiki/List_of_tallest_freestanding_structures), manipulated and visualized in three plots to gain practice in R with web scraping, string processing, tidying, and data visualization^[The rvest package was used for scraping; the stringr and tidyverse packages were used for parsing and tidying; ggplot2, maps, mapdata, ggrepel, and gganimate were used for visualization.].
@@ -23,23 +24,24 @@ Data on the world's tallest buildings was scraped from the Wikipedia page: [List
 The retrieved data set includes all freestanding structures taller than 350 m across the world. Three plots were made to highlight some of the features of the data. The first plot is a time animation that presents the locations of the structures on year of completion:
 
 ```{r animated plot, echo = FALSE, fig.width=10, fig.height=5}
-
+load("dat.RData")
 world <- map_data("world")
 world$region[which(world$region=="USA")] <- "United States" # use same country name as scraped data
 worldplot <- ggplot(world) + geom_polygon(aes(long, lat, group = group), 
   fill = "lightgrey", color = "white") + coord_fixed(xlim = c(-160, 165), 
   ylim = c(-50,75), ratio = 1.3) + theme_void()
 
-map <- worldplot + geom_point(data = tall, aes(Longitude, Latitude, 
+map <- worldplot + geom_point(data = tall_structures, aes(Longitude, Latitude, 
   size = Height, color = Region), alpha = 0.3) + labs(size = 'Height (m)') + 
   theme_void() + guides(size = guide_legend(reverse = T)) + 
   guides(color = guide_legend(override.aes = list(size = 5)))
 
 anim <- worldplot + 
-  geom_point(data = tall, aes(Longitude, Latitude, size = Height), 
+  geom_point(data = tall_structures, aes(Longitude, Latitude, size = Height), 
   color = "blue", alpha = 0.3) + labs(size = 'Height (m)') + 
   guides(size = guide_legend(reverse = T)) + 
-  transition_manual(tall$Year, cumulative = TRUE) + ggtitle("{current_frame}") + 
+  transition_manual(tall_structures$Year, cumulative = TRUE) + 
+  ggtitle("{current_frame}") + 
   guides(color = guide_legend(override.aes = list(size = 8))) 
 
 animate(anim,  height = 500, width = 1000, res = 100, 
@@ -50,30 +52,38 @@ animate(anim,  height = 500, width = 1000, res = 100,
 The second plot illustrates three distinct time-geographic trends: 1) prior to 1980, all structures in the data set were located in North America and Europe; 2) almost all structures completed in the 1980s were in Central Asia and Russia; 3) from 1990 onward, construction of new structures was strongly dominated by countries in East Asian and the Middle East.
 
 ```{r era  plot, fig.width=10, fig.height = 5}
-worldplot + geom_point(data = tall, aes(Longitude, Latitude, size = Height, 
+worldplot + geom_point(data = tall_structures, 
+                       aes(Longitude, Latitude, size = Height, 
   color = Era), alpha = 0.5) + labs(size = 'Height (m)') + 
   guides(size = guide_legend(reverse = T)) + 
   guides(color = guide_legend(override.aes = list(size = 5))) 
 ```
 
-The final plot shows the number of structures taller than 350 m by country.
+The final plot shows the number of structures than 350 m by country.
 
 ```{r density plot, fig.width = 10, fig.height = 5}
 
-total_num_structures <- tall %>% mutate(region = Country) %>% group_by(region) %>% # count the structures per country
+total_num_structures <- tall_structures %>% mutate(region = Country) %>% 
+  group_by(region) %>% # count the structures per country
   summarize(total = n()) %>% mutate(info = paste(region, total, sep = " - "))
 
-total_structures_map_dat <- total_num_structures %>% inner_join(world, by = "region") # join with world data
+total_structures_map_dat <- total_num_structures %>% 
+  inner_join(world, by = "region") # join with world data
 
 region_labels_info <- total_structures_map_dat %>% group_by(region) %>% 
   summarize(info = first(info), long = mean(long), lat = mean(lat))
 
-region_labels_info[which(region_labels_info$region == "United States"), c("long", "lat")] <- 
-  tall[first(which(tall$City == "Chicago")), c("Longitude", "Latitude")]
+region_labels_info[which(region_labels_info$region == "United States"), 
+  c("long", "lat")] <- 
+  tall_structures[first(which(tall_structures$City == "Chicago")),
+  c("Longitude", "Latitude")]
 
-worldplot + geom_polygon(data = total_structures_map_dat, aes(long, lat, group = group, fill = total), color = "white") + 
-  geom_text_repel(data = region_labels_info, aes(long, lat, label = info), box.padding = .45) + 
+worldplot + geom_polygon(data = total_structures_map_dat, 
+  aes(long, lat, group = group, fill = total), color = "white") + 
+  geom_text_repel(data = region_labels_info, aes(long, lat, label = info), 
+  box.padding = .45) + 
   coord_fixed(xlim = c(-160, 165), ylim = c(-50,75), ratio = 1.3) +
-  scale_fill_gradient(low = "papayawhip", high = "navajowhite3", trans = "log10", name = "Structures \n above 350 m")
+  scale_fill_gradient(low = "papayawhip", high = "navajowhite3", 
+  trans = "log10", name = "Structures \n above 350 m")
 ```
 
