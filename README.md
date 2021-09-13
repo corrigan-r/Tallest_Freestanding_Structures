@@ -7,7 +7,7 @@ The retrieved data set includes all freestanding structures taller than 350 m ac
 
 ![alt text](https://github.com/corrigan-r/Tallest_Freestanding_Structures/blob/main/animation_plot.gif)
 
-The second plot illustrates three distinct time-geographic trends: 1) prior to 1980, all structures in the data set were located in North America and Europe; 2) almost all structures completed in the 1980s were in Central Asia and Russia; and 3) from 1990 onward, construction of new structures was strongly dominated by countries in East Asian and the Middle East.
+The second plot illustrates three distinct time-geographic trends: 1) prior to 1980, all structures in the data set were located in North America and Europe; 2) almost all structures completed in the 1980s were in Central Asia and Russia; and 3) from 1990 onward, construction of new structures was dominated by countries in East Asian and the Middle East.
 ![alt text](https://github.com/corrigan-r/Tallest_Freestanding_Structures/blob/main/era_plot.png)
 The final plot shows the number of structures taller than 350 m by country.
 ![alt text](https://github.com/corrigan-r/Tallest_Freestanding_Structures/blob/main/density_plot.png)
